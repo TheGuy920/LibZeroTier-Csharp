@@ -81,7 +81,6 @@ namespace LibZeroTier
                 this.IsCheckingForUpdates = true;
                 while (this.IsCheckingForUpdates)
                 {
-                    NetworkPropertyChange(null, null, "UPDATE");
                     Task.Delay(500).Wait();
                     if (!this.IsCheckingForUpdates)
                         return;
@@ -303,7 +302,6 @@ namespace LibZeroTier
         /// <returns>List of ZeroTierNetwork objects</returns>
         public List<ZeroTierNetwork> GetNetworks()
         {
-            NetworkPropertyChange(null, null, "BEGIN");
             HttpWebRequest request = WebRequest.Create(url + "/network" + "?auth=" + authtoken) as HttpWebRequest;
             if (request == null)
             {
@@ -313,7 +311,6 @@ namespace LibZeroTier
             request.Method = "GET";
             request.ContentType = "application/json";
             request.Timeout = 10000;
-            NetworkPropertyChange(null, null, "SECTION 2");
             try
             {
                 var httpResponse = (HttpWebResponse)request.GetResponse();
@@ -322,7 +319,6 @@ namespace LibZeroTier
                     using StreamReader streamReader = new StreamReader(httpResponse.GetResponseStream());
                     var responseText = streamReader.ReadToEnd();
                     List<ZeroTierNetwork> networkList = new List<ZeroTierNetwork>();
-                    NetworkPropertyChange(null, null, responseText);
                     if (UseStandardSerialize)
                     {
                         networkList = JsonConvert.DeserializeObject<List<ZeroTierNetwork>>(responseText);

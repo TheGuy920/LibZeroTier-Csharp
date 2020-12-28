@@ -86,6 +86,22 @@ namespace LibZeroTier
                 return "[ZeroTier] [API] API Handler Not Running!";
             }
         }
+        public void RestartZeroTier()
+        {
+            // get zero teir process(es) and kill em
+            Process[] Zero = Process.GetProcessesByName("ZeroTier One");
+            foreach (var item in Zero) { item.Kill(); item.WaitForExit(); }
+            NetworkInfoLog("[ZeroTier] [API] Stopped all ZeroTier processes");
+            NetworkInfoLog("[ZeroTier] [API] Locating...");
+            // Delete all network history
+            DeleteAllNonConnectedNetworks();
+            // start zero teir
+            Process proccess = new Process();
+            proccess.StartInfo.FileName = @"C:\Program Files (x86)\ZeroTier\One\ZeroTier One.exe";
+            proccess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            proccess.StartInfo.CreateNoWindow = true;
+            proccess.Start();
+        }
         public async Task StartServerAsync(string Network = null)
         {
             // get zero teir process(es) and kill em
