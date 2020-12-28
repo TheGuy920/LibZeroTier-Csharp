@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace LibZeroTier
@@ -11,14 +8,18 @@ namespace LibZeroTier
     [Serializable]
     public class NetworkRoute : ISerializable
     {
-        protected NetworkRoute(SerializationInfo info, StreamingContext ctx)
-        {
-            Target = info.GetString("target");
-            Via = info.GetString("via");
-            Flags = info.GetInt32("flags");
-            Metric = info.GetInt32("metric");
-        }
 
+        public NetworkRoute(SerializationInfo info = null, StreamingContext ctx = new StreamingContext())
+        {
+            try
+            {
+                Flags = info.GetInt32("flags");
+                Metric = info.GetInt32("metric");
+                Target = info.GetString("target");
+                Via = info.GetString("via");
+            }
+            catch(Exception e) { Debug.WriteLine(e); }
+        }
         public virtual void GetObjectData(SerializationInfo info, StreamingContext ctx)
         {
             info.AddValue("target", Target);

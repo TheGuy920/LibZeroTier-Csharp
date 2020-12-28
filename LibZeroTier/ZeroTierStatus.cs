@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace LibZeroTier
@@ -35,5 +31,38 @@ namespace LibZeroTier
 
         [JsonProperty("clock")]
         public UInt64 Clock { get; set; }
+    }
+    public enum StatusChange
+    {
+        AllowDefault,
+        AllowDNS,
+        AllowGlobal,
+        AllowManaged,
+        AssignedAddresses,
+        Bridge,
+        BroadcastEnabled,
+        ConnectionTimeout,
+        CreatedNetwork,
+        DHCP,
+        DestroyedNetwork,
+        DeviceName,
+        Dns,
+        GenericPropertyChange,
+        IsConnected,
+        JoinedNetwork,
+        LeftNetwork,
+        MTU,
+        MacAddress,
+        MulticastSubscriptions,
+        NetconfRevision,
+        NetworkId,
+        NetworkList,
+        NetworkName,
+        NetworkStatus,
+        NetworkType,
+        PortError,
+        Routes,
+        UnexpectedShutdown,
+        UserStatus
     }
 }

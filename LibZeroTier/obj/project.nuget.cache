@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "peMUI16uGV35DmdpN2aHMactB3XbEKMvkPxTFNTBjEcq4mAt4/ILF/RpJvOX/RlH9DglG3ZumY2PdRmwAjb91Q==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Matthew\\Documents\\GitHub\\LibZeroTier-Csharp\\LibZeroTier\\LibZeroTier.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Matthew\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "C:\\Users\\Matthew\\.nuget\\packages\\netstandard.library\\2.0.3\\netstandard.library.2.0.3.nupkg.sha512",
+    "C:\\Users\\Matthew\\.nuget\\packages\\newtonsoft.json\\12.0.3\\newtonsoft.json.12.0.3.nupkg.sha512",
+    "C:\\Users\\Matthew\\.nuget\\packages\\system.security.accesscontrol\\5.0.0\\system.security.accesscontrol.5.0.0.nupkg.sha512",
+    "C:\\Users\\Matthew\\.nuget\\packages\\system.security.permissions\\5.0.0\\system.security.permissions.5.0.0.nupkg.sha512",
+    "C:\\Users\\Matthew\\.nuget\\packages\\system.security.principal.windows\\5.0.0\\system.security.principal.windows.5.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -7,3 +7,12 @@ C:\Users\Alex\source\repos\LibZeroTier\LibZeroTier\obj\Debug\netstandard2.0\LibZ
 C:\Users\Alex\source\repos\LibZeroTier\LibZeroTier\bin\Debug\netstandard2.0\LibZeroTier.pdb
 C:\Users\Alex\source\repos\LibZeroTier\LibZeroTier\obj\Debug\netstandard2.0\LibZeroTier.dll
 C:\Users\Alex\source\repos\LibZeroTier\LibZeroTier\obj\Debug\netstandard2.0\LibZeroTier.pdb
+C:\Users\Matthew\Documents\GitHub\LibZeroTier-Csharp\LibZeroTier\bin\Debug\netstandard2.0\LibZeroTier.deps.json
+C:\Users\Matthew\Documents\GitHub\LibZeroTier-Csharp\LibZeroTier\bin\Debug\netstandard2.0\LibZeroTier.dll
+C:\Users\Matthew\Documents\GitHub\LibZeroTier-Csharp\LibZeroTier\bin\Debug\netstandard2.0\LibZeroTier.pdb
+C:\Users\Matthew\Documents\GitHub\LibZeroTier-Csharp\LibZeroTier\obj\Debug\netstandard2.0\LibZeroTier.csprojAssemblyReference.cache
+C:\Users\Matthew\Documents\GitHub\LibZeroTier-Csharp\LibZeroTier\obj\Debug\netstandard2.0\LibZeroTier.AssemblyInfoInputs.cache
+C:\Users\Matthew\Documents\GitHub\LibZeroTier-Csharp\LibZeroTier\obj\Debug\netstandard2.0\LibZeroTier.AssemblyInfo.cs
+C:\Users\Matthew\Documents\GitHub\LibZeroTier-Csharp\LibZeroTier\obj\Debug\netstandard2.0\LibZeroTier.csproj.CoreCompileInputs.cache
+C:\Users\Matthew\Documents\GitHub\LibZeroTier-Csharp\LibZeroTier\obj\Debug\netstandard2.0\LibZeroTier.dll
+C:\Users\Matthew\Documents\GitHub\LibZeroTier-Csharp\LibZeroTier\obj\Debug\netstandard2.0\LibZeroTier.pdb
