@@ -84,6 +84,13 @@ namespace LibZeroTier
                     Task.Delay(500).Wait();
                     if (!this.IsCheckingForUpdates)
                         return;
+                    // get zero teir process(es)
+                    Process[] Zero = Process.GetProcessesByName("ZeroTier One");
+                    if (Zero.Length <= 0)
+                    {
+                        // exits with exit code "ZeroTier One not running"
+                        NetworkPropertyChange(StatusChange.UnexpectedShutdown, new PropertyChangedEventArgs("OperationalStatus"), "Dead");
+                    }
                     List<ZeroTierNetwork> NewNets = GetNetworks();
                     int count;
 
@@ -208,7 +215,6 @@ namespace LibZeroTier
 
         public APIHandler(bool resetAuthToken = false)
         {
-            NetworkPropertyChange(null, null, "INITIALIZATION");
             url = "http://127.0.0.1:9993";
             initHandler(resetAuthToken);
             UpdateNetworkList();
@@ -216,7 +222,6 @@ namespace LibZeroTier
 
         public APIHandler(int port, string authToken)
         {
-            NetworkPropertyChange(null, null, "INITIALIZATION");
             url = "http://127.0.0.1:" + port;
             authtoken = authToken;
             UpdateNetworkList();
@@ -472,63 +477,6 @@ namespace LibZeroTier
                 }
             });
         }
-
-        //public delegate void PeersCallback(List<ZeroTierPeer> peers);
-
-        /*public void GetPeers(PeersCallback cb)
-        {
-            var request = WebRequest.Create(url + "/peer" + "?auth=" + authtoken) as HttpWebRequest;
-            if (request == null)
-            {
-                cb(null);
-            }
-
-            request.Method = "GET";
-            request.ContentType = "application/json";
-
-            try
-            {
-                var httpResponse = (HttpWebResponse)request.GetResponse();
-                if (httpResponse.StatusCode == HttpStatusCode.OK)
-                {
-                    using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-                    {
-                        var responseText = streamReader.ReadToEnd();
-                        //Console.WriteLine(responseText);
-                        List<ZeroTierPeer> peerList = null;
-                        try
-                        {
-                            peerList = JsonConvert.DeserializeObject<List<ZeroTierPeer>>(responseText);
-                        }
-                        catch (JsonReaderException e)
-                        {
-                            Console.WriteLine(e.ToString());
-                        }
-                        cb(peerList);
-                    }
-                }
-                else if (httpResponse.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    APIHandler.initHandler(true);
-                }
-            }
-            catch (System.Net.Sockets.SocketException)
-            {
-                cb(null);
-            }
-            catch (System.Net.WebException e)
-            {
-                HttpWebResponse res = (HttpWebResponse)e.Response;
-                if (res != null && res.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    APIHandler.initHandler(true);
-                }
-                else
-                {
-                    cb(null);
-                }
-            }
-        }*/
 
         public string NodeAddress()
         {

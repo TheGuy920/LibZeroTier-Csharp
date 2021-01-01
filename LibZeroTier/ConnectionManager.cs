@@ -8,27 +8,50 @@ using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using LibZeroTier.CustomNetworkTypes;
 using System.IO;
+using System.Net;
+using Dns = LibZeroTier.CustomNetworkTypes.Dns;
 
 namespace LibZeroTier
 {
     public class ZeroTierAPI
     {
-        public string NetworkId;
         public APIHandler ZeroTierHandler;
+        public API_Settings API_Settings;
+        public Network_Settings Network_Settings;
         public HttpClient client = new HttpClient();
         public event EventHandler<NetworkChangedEventArgs> NetworkChangeEvent;
         public event EventHandler<string> LogNetworkInfoEvent;
-        private bool IsAppAdministrator = false;
-        public ZeroTierAPI(bool isAdmin = false)
+        private string ZeroTierFolderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "ZeroTier", "One");
+        private string ZeroTierEXEPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) , "ZeroTier", "One", "ZeroTier One.exe");
+        public ZeroTierAPI(API_Settings api_settings, Network_Settings network_Settings, bool StartZeroTier = false)
         {
-            IsAppAdministrator = isAdmin;
+            if (ZeroTierHandler == null)
+                ZeroTierHandler = new APIHandler();
+            ZeroTierHandler.AddEventHandler(ZeroTierHandler_NetworkChangeEvent);
+            NetworkInfoLog("[ZeroTier] [API] API Created!");
+            if(api_settings != null)
+                API_Settings = api_settings;
+            if(network_Settings != null)
+                Network_Settings = network_Settings;
+            // start zero teir
+            Process[] Zero = Process.GetProcessesByName("ZeroTier One");
+            if (StartZeroTier && Zero.Length <= 0)
+            {
+                Process proccess = new Process();
+                proccess.StartInfo.FileName = ZeroTierEXEPath;
+                proccess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                proccess.StartInfo.WorkingDirectory = ZeroTierFolderPath;
+                proccess.StartInfo.CreateNoWindow = true;
+                proccess.Start();
+                NetworkInfoLog("[ZeroTier] [CLI] ZeroTier Started!");
+            }
         }
         protected virtual void NetworkChange(NetworkChangedEventArgs details)
         {
             EventHandler<NetworkChangedEventArgs> handler = NetworkChangeEvent;
             handler?.Invoke(this, details);
         }
-        public void ZeroTierHandler_NetworkChangeEvent(object sender, APIHandler.NetworkPropertyChangedEventArgs e)
+        private void ZeroTierHandler_NetworkChangeEvent(object sender, APIHandler.NetworkPropertyChangedEventArgs e)
         {
             this.NetworkChange(new NetworkChangedEventArgs()
             {
@@ -64,7 +87,7 @@ namespace LibZeroTier
             }
             return null;
         }
-        public string GetNetStatus()
+        public string GetPrimaryNetworkStatus()
         {
             try
             {
@@ -75,7 +98,7 @@ namespace LibZeroTier
                 return "[ZeroTier] [API] API Handler Not Running!";
             }
         }
-        public string GetZeroStatus()
+        public string GetZeroTierStatus()
         {
             try
             {
@@ -97,7 +120,7 @@ namespace LibZeroTier
             DeleteAllNonConnectedNetworks();
             // start zero teir
             Process proccess = new Process();
-            proccess.StartInfo.FileName = @"C:\Program Files (x86)\ZeroTier\One\ZeroTier One.exe";
+            proccess.StartInfo.FileName = ZeroTierEXEPath;
             proccess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             proccess.StartInfo.CreateNoWindow = true;
             proccess.Start();
@@ -113,7 +136,7 @@ namespace LibZeroTier
             DeleteAllNonConnectedNetworks();
             // start zero teir
             Process proccess = new Process();
-            proccess.StartInfo.FileName = @"C:\Program Files (x86)\ZeroTier\One\ZeroTier One.exe";
+            proccess.StartInfo.FileName = ZeroTierEXEPath;
             proccess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             proccess.StartInfo.CreateNoWindow = true;
             proccess.Start();
@@ -123,7 +146,7 @@ namespace LibZeroTier
             // instantiate the API manager if it has not been done already
             if (ZeroTierHandler == null)
             {
-                ZeroTierHandler = new APIHandler(IsAppAdministrator);
+                ZeroTierHandler = new APIHandler();
                 ZeroTierHandler.AddEventHandler(ZeroTierHandler_NetworkChangeEvent);
                 NetworkInfoLog("[ZeroTier] [API] API Created!");
             }
@@ -147,8 +170,8 @@ namespace LibZeroTier
                     if (LocalNet.NetworkId == Network && LocalNet.IsConnected == true && LocalNet.NetworkStatus.Equals("OK"))
                         Connected = true;
             }
-            NetworkId = Network;
-            NetworkInfoLog("[ZeroTier] [Network] Joined Network: " + NetworkId);
+            Network_Settings.Network_Id = Network;
+            NetworkInfoLog("[ZeroTier] [Network] Joined Network: " + Network_Settings.Network_Id);
             NetworkInfoLog("[ZeroTier] [Network] P2P Connection Established!");
         }
         public async Task JoinServerAsync(string NetworkId)
@@ -164,21 +187,24 @@ namespace LibZeroTier
         {
             if(this.ZeroTierHandler != null)
                 this.ZeroTierHandler.IsCheckingForUpdates = false;
-            string netId = this.NetworkId;
+            string netId = this.Network_Settings.Network_Id;
             // leave all servers
             LeaveAllServers();
+            NetworkInfoLog("[ZeroTier] [Network] P2P Connection Removed");
             // get zero teir process(es) and kill em
             Process[] Zero = Process.GetProcessesByName("ZeroTier One");
-            foreach (var item in Zero) { item.Kill(); item.WaitForExit(); }
+            foreach (Process item in Zero) { item.Kill(); }
+            foreach (Process item in Zero) { item.WaitForExit(); }
             NetworkInfoLog("[ZeroTier] [API] Stopped all ZeroTier processes");
             // delete network on website
-            if(DeleteWebServer)
+            if (DeleteWebServer)
+            {
                 await DeleteNetwork(netId);
-            NetworkInfoLog("[ZeroTier] [API-NET] Deleted P2P Network");
+                NetworkInfoLog("[ZeroTier] [API-NET] Deleted P2P Network");
+            }
             // Delete all network history
             DeleteAllNonConnectedNetworks();
             NetworkInfoLog("[ZeroTier] [Network] Deleted Network History");
-            NetworkInfoLog("[ZeroTier] [Network] P2P Connection Removed");
             this.ZeroTierHandler = null;
         }
         public async Task DeleteAllNetworks()
@@ -186,7 +212,7 @@ namespace LibZeroTier
             // setup headers
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", "XlOrMp71uEQdxFT1D0bzjkkBjJCOCbvA");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", API_Settings.Web_API_Key);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             // get network list
             var Get = client.GetAsync("https://my.zerotier.com/api/network");
@@ -199,12 +225,12 @@ namespace LibZeroTier
                 await DeleteNetwork(netid);
             }
         }
-        public async Task UpdateNetworkDescription(string NetworkId, string Description)
+        public async Task UpdateNetworkDescription(string NetworkId, string NetworkName, string NetworkDescription)
         {
             // setup headers
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", "XlOrMp71uEQdxFT1D0bzjkkBjJCOCbvA");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", API_Settings.Web_API_Key);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             // get network list
             var Get = client.GetAsync("https://my.zerotier.com/api/network");
@@ -216,7 +242,7 @@ namespace LibZeroTier
                 var netid = item["id"].ToString();
                 if (netid == NetworkId)
                 {
-                    await CreateNewNetwork("Multiplayer Server", Description, netid);
+                    await CreateNewNetwork(NetworkName, NetworkDescription, netid);
                 }
             }
         }
@@ -228,15 +254,20 @@ namespace LibZeroTier
             File.Delete(NetworksFile);
         }
 
-        private async Task<string> CreateNewNetwork(string NetworkName = "Multiplayer Server", string NetworkDescription = "", string NetworkId = "")
+        private async Task<string> CreateNewNetwork(string NetworkName = "", string NetworkDescription = "", string NetworkId = "")
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(NetworkName))
+                    NetworkName = Network_Settings.Network_Name;
+                if (string.IsNullOrWhiteSpace(NetworkDescription))
+                    NetworkDescription = Network_Settings.Network_Description;
+                bool privacy = (Network_Settings.Network_Privacy == Security.Private && Network_Settings.Network_Privacy != Security.Public);
                 bool IsNewNet = true;
                 // setup headers
                 client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", "XlOrMp71uEQdxFT1D0bzjkkBjJCOCbvA");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", API_Settings.Web_API_Key);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 // get network list
                 var Get = client.GetAsync("https://my.zerotier.com/api/network");
@@ -271,7 +302,6 @@ namespace LibZeroTier
                 {
                     Id = NetworkId,
                     Type = "Network",
-                    Clock = 1608235389104,
                     Config = new Config()
                     {
                         AuthTokens = null,
@@ -283,23 +313,23 @@ namespace LibZeroTier
                         {
                             new IpAssignmentPool()
                             {
-                                IpRangeStart = "10.10.10.0",
-                                IpRangeEnd = "10.10.10.254"
+                                IpRangeStart = Network_Settings.IP_Address_Prefix + ".0",
+                                IpRangeEnd = Network_Settings.IP_Address_Prefix + ".254"
                             }
                         },
                         LastModified = CurrentTime,
                         Mtu = 2800,
                         MulticastLimit = 32,
                         Name = NetworkName,
-                        Private = false,
+                        Private = privacy,
                         RemoteTraceLevel = 0,
                         RemoteTraceTarget = null,
                         Routes = new List<NetworkRoute>()
                         {
                             new NetworkRoute()
                             {
-                                Target = "10.10.10.0/24",
-                                Via = "10.10.10.1"
+                                Target = Network_Settings.IP_Address_Prefix + ".0/24",
+                                Via = Network_Settings.IP_Address_Prefix + ".1"
                             }
                         },
                         Rules = new List<Rule>()
@@ -354,7 +384,7 @@ namespace LibZeroTier
                     Description = NetworkDescription,
                     RulesSource = "",
                     Permissions = null,
-                    OwnerId = "56e2eba4-db42-4082-9456-fe22051d54b8",
+                    OwnerId = API_Settings.Internal_Id,
                     OnlineMemberCount = 0,
                     AuthorizedMemberCount = null,
                     TotalMemberCount = 0,
@@ -401,7 +431,7 @@ namespace LibZeroTier
             // setup headers
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", "XlOrMp71uEQdxFT1D0bzjkkBjJCOCbvA");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", API_Settings.Web_API_Key);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             // get network list
             var Get = client.GetAsync("https://my.zerotier.com/api/network");
@@ -418,9 +448,26 @@ namespace LibZeroTier
             // setup headers
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", "XlOrMp71uEQdxFT1D0bzjkkBjJCOCbvA");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", API_Settings.Web_API_Key);
             // delete network
             await client.DeleteAsync("https://my.zerotier.com/api/network/" + NetworkId);
+        }
+        public List<KeyValuePair<IPAddress, bool>> GetPeers(string NetworkId)
+        {
+            HttpClient client = new HttpClient();
+            List<KeyValuePair<IPAddress, bool>> List = new List<KeyValuePair<IPAddress, bool>>();
+            // setup headers
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", API_Settings.Web_API_Key);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            // get network info
+            string JsonArrayReturn = client.GetAsync("https://my.zerotier.com/api/network/"+ NetworkId + "/member").Result.Content.ReadAsStringAsync().Result;
+            foreach (var i in JArray.Parse(JsonArrayReturn))
+            {
+                List.Add(new KeyValuePair<IPAddress, bool>(IPAddress.Parse(i["config"]["ipAssignments"][0].ToString()), bool.Parse(i["online"].ToString())));
+            }
+            return List;
         }
     }
 }
