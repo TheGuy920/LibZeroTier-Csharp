@@ -165,10 +165,14 @@ namespace LibZeroTier
             bool Connected = false;
             while (!Connected)
             {
-                ZeroTierHandler.JoinNetwork(Network);
                 foreach (var LocalNet in ZeroTierHandler.GetNetworks())
-                    if (LocalNet.NetworkId == Network && LocalNet.IsConnected == true && LocalNet.NetworkStatus.Equals("OK"))
-                        Connected = true;
+                {
+                    if (LocalNet.NetworkId == Network)
+                        if(LocalNet.IsConnected == true && LocalNet.NetworkStatus.Equals("OK"))
+                            Connected = true;                            
+                }
+                if(!Connected)
+                    ZeroTierHandler.JoinNetwork(Network);
             }
             Network_Settings.Network_Id = Network;
             NetworkInfoLog("[ZeroTier] [Network] Joined Network: " + Network_Settings.Network_Id);
